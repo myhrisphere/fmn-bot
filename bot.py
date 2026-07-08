@@ -18,25 +18,24 @@ class CalendarBot(commands.Bot):
 
         await create_database()
 
+        extensions = [
+            "cogs.test",
+            "cogs.calendar",
+        ]
+
+
+        for extension in extensions:
+
+            await self.load_extension(
+                extension
+            )
+
+
+        await self.tree.sync()
+
+
         logger.info(
-            "Database initialized"
-        )
-
-
-        # Load cogs
-        await self.load_extension(
-            "cogs.test"
-        )
-
-        logger.info(
-            "Test cog loaded"
-        )
-
-
-        synced = await self.tree.sync()
-
-        logger.info(
-            f"Synced {len(synced)} commands"
+            "Commands synchronized"
         )
 
 
