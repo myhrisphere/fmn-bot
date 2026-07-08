@@ -31,9 +31,10 @@ class CalendarBot(commands.Bot):
             )
 
 
+        print(self.tree.get_commands())
+
         await self.tree.sync()
-
-
+        
         logger.info(
             "Commands synchronized"
         )

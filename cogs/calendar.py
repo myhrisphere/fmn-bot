@@ -12,6 +12,8 @@ from database.database import AsyncSession
 
 from database.models import Appointment
 
+from ui.calendar_modal import AppointmentModal
+
 
 
 class Calendar(commands.Cog):
@@ -32,69 +34,80 @@ class Calendar(commands.Cog):
     # ADD APPOINTMENT
     # =========================
 
+    # @calendar.command(
+    #     name="add",
+    #     description="Add a new appointment"
+    # )
+    # async def add(
+    #     self,
+    #     interaction: discord.Interaction,
+    #     title: str,
+    #     date: str,
+    #     time: str,
+    #     description: str = None
+    # ):
+
+
+    #     try:
+
+    #         start = datetime.strptime(
+    #             f"{date} {time}",
+    #             "%d.%m.%Y %H:%M"
+    #         )
+
+    #     except ValueError:
+
+    #         await interaction.response.send_message(
+    #             "Wrong date format. Use DD.MM.YYYY HH:MM",
+    #             ephemeral=True
+    #         )
+
+    #         return
+
+
+
+    #     appointment = Appointment(
+
+    #         guild_id=interaction.guild.id,
+
+    #         title=title,
+
+    #         description=description,
+
+    #         start_datetime=start,
+
+    #         creator_id=interaction.user.id
+
+    #     )
+
+
+    #     async with AsyncSession() as session:
+
+    #         session.add(
+    #             appointment
+    #         )
+
+    #         await session.commit()
+
+
+
+    #     await interaction.response.send_message(
+    #         f"Appointment created:\n"
+    #         f"**{title}**\n"
+    #         f"{start.strftime('%d.%m.%Y %H:%M')}"
+    #     )
     @calendar.command(
         name="add",
-        description="Add a new appointment"
+        description="Create a new appointment"
     )
     async def add(
         self,
-        interaction: discord.Interaction,
-        title: str,
-        date: str,
-        time: str,
-        description: str = None
+        interaction: discord.Interaction
     ):
 
-
-        try:
-
-            start = datetime.strptime(
-                f"{date} {time}",
-                "%d.%m.%Y %H:%M"
-            )
-
-        except ValueError:
-
-            await interaction.response.send_message(
-                "Wrong date format. Use DD.MM.YYYY HH:MM",
-                ephemeral=True
-            )
-
-            return
-
-
-
-        appointment = Appointment(
-
-            guild_id=interaction.guild.id,
-
-            title=title,
-
-            description=description,
-
-            start_datetime=start,
-
-            creator_id=interaction.user.id
-
+        await interaction.response.send_modal(
+            AppointmentModal()
         )
-
-
-        async with AsyncSession() as session:
-
-            session.add(
-                appointment
-            )
-
-            await session.commit()
-
-
-
-        await interaction.response.send_message(
-            f"Appointment created:\n"
-            f"**{title}**\n"
-            f"{start.strftime('%d.%m.%Y %H:%M')}"
-        )
-
 
 
     # =========================
@@ -179,38 +192,30 @@ class Calendar(commands.Cog):
     # =========================
 
     @calendar.command(
-        name="delete",
-        description="Delete an appointment"
+    name="delete",
+    description="Delete an appointment"
     )
     async def delete(
         self,
         interaction: discord.Interaction,
-        appointment_id: int
+        appointment_id: str
     ):
 
-
         async with AsyncSession() as session:
-
 
             result = await session.execute(
 
                 select(Appointment)
                 .where(
-                    Appointment.id
-                    ==
-                    appointment_id
+                    Appointment.id == int(appointment_id)
                 )
                 .where(
-                    Appointment.guild_id
-                    ==
-                    interaction.guild.id
+                    Appointment.guild_id == interaction.guild.id
                 )
 
             )
 
-
             appointment = result.scalar_one_or_none()
-
 
 
             if not appointment:
@@ -223,7 +228,6 @@ class Calendar(commands.Cog):
                 return
 
 
-
             await session.delete(
                 appointment
             )
@@ -231,15 +235,17 @@ class Calendar(commands.Cog):
             await session.commit()
 
 
-
         await interaction.response.send_message(
-            "Appointment deleted."
+            f"Deleted: **{appointment.title}**"
         )
 
 
 
 async def setup(bot):
 
+    print("Loading calendar cog")
+
     await bot.add_cog(
         Calendar(bot)
     )
+
