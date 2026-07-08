@@ -19,5 +19,18 @@ DATABASE_URL = os.getenv(
 
 DEFAULT_TIMEZONE = os.getenv(
     "DEFAULT_TIMEZONE",
-    "UTC"
+    "Europe/Warsaw"
 )
+
+
+LOG_LEVEL = os.getenv(
+    "LOG_LEVEL",
+    "INFO"
+)
+
+
+if not DISCORD_TOKEN:
+
+    raise RuntimeError(
+        "DISCORD_TOKEN is missing from .env"
+    )

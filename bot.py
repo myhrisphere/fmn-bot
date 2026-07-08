@@ -1,79 +1,104 @@
+import asyncio
+
+import logging
+
+
 import discord
 
 from discord.ext import commands
 
-from config import DISCORD_TOKEN
 
-from database.database import create_database
-
-from utils.logger import (
-    setup_logger,
-    logger
+from config import (
+    DISCORD_TOKEN,
+    LOG_LEVEL
 )
 
 
-class CalendarBot(commands.Bot):
+from database.database import (
+    init_database
+)
+
+
+
+logging.basicConfig(
+
+    level=getattr(
+        logging,
+        LOG_LEVEL.upper(),
+        logging.INFO
+    ),
+
+    format=
+    "[%(asctime)s] %(levelname)s: %(message)s"
+
+)
+
+
+
+class FMNBot(commands.Bot):
+
+
+    def __init__(self):
+
+        intents = discord.Intents.default()
+
+
+        super().__init__(
+
+            command_prefix="!",
+
+            intents=intents
+
+        )
+
+
 
     async def setup_hook(self):
 
-        await create_database()
-
-        extensions = [
-            "cogs.test",
-            "cogs.calendar",
-        ]
+        logging.info(
+            "Initializing database..."
+        )
 
 
-        for extension in extensions:
-
-            await self.load_extension(
-                extension
-            )
+        await init_database()
 
 
-        print(self.tree.get_commands())
+        logging.info(
+            "Database initialized"
+        )
+
+
+        await self.load_extension(
+            "cogs.calendar"
+        )
+
+
+        logging.info(
+            "Calendar cog loaded"
+        )
+
 
         await self.tree.sync()
-        
-        logger.info(
+
+
+        logging.info(
             "Commands synchronized"
         )
 
 
 
-intents = discord.Intents.default()
-
-intents.members = True
-
-
-bot = CalendarBot(
-    command_prefix="!",
-    intents=intents
-)
-
-
-
-@bot.event
-async def on_ready():
-
-    logger.info(
-        f"Logged in as {bot.user}"
-    )
+bot = FMNBot()
 
 
 
 async def main():
 
-    setup_logger()
+    async with bot:
 
-    await bot.start(
-        DISCORD_TOKEN
-    )
+        await bot.start(
+            DISCORD_TOKEN
+        )
 
 
 
-if __name__ == "__main__":
-
-    import asyncio
-
-    asyncio.run(main())
+asyncio.run(main())
